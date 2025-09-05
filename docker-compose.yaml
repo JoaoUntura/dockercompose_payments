@@ -1,0 +1,85 @@
+version: "3.8"
+
+services:
+  database:
+    image: postgres:15
+    container_name: postgres
+    environment:
+      POSTGRES_DB: payments_db
+      POSTGRES_USER: joaountura
+      POSTGRES_PASSWORD: joaountura@dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"   # porta AMQP
+      - "15672:15672" # painel web
+    environment:
+      RABBITMQ_DEFAULT_USER: joaountura
+      RABBITMQ_DEFAULT_PASS: joaountura@dev
+
+  redis:
+    image: redis:8.0.3
+    container_name: redis
+    ports:
+      - "6379:6379"
+ 
+
+  java:
+    image: joaountura/payment-microservice:latest
+    container_name: java
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://database:5432/payments_db
+      SPRING_DATASOURCE_USERNAME: joaountura
+      SPRING_DATASOURCE_PASSWORD: joaountura@dev
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
+      
+    depends_on:
+      - database
+      - rabbitmq
+      - redis
+ 
+  nginx:
+    image: nginx:stable
+    container_name: nginx
+    depends_on:
+      - java
+    volumes:
+      - ./config/nginx/conf.d:/etc/nginx/conf.d
+      - ./config/certs:/etc/letsencrypt
+    ports:
+      - "80:80"
+      - "443:443"
+    restart: unless-stopped
+
+
+  certbot:
+    image: certbot/certbot
+    container_name: certbot
+    volumes:
+      - ./config/certs:/etc/letsencrypt
+      - ./config/nginx/conf.d:/etc/nginx/conf.d
+    entrypoint: >
+      /bin/sh -c "
+        trap exit TERM;
+        while :; do
+          certbot renew --webroot -w /etc/nginx/conf.d;
+          sleep 12h & wait $${!};
+        done
+      "
+    depends_on:
+      - nginx
+
+
+volumes:
+  postgres_data:
