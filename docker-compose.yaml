@@ -70,6 +70,7 @@ services:
     volumes:
       - ./config/certs:/etc/letsencrypt
       - ./config/nginx/conf.d:/etc/nginx/conf.d
+      - ./config/nginx/www:/etc/nginx/www
     entrypoint: >
       /bin/sh -c "
         trap exit TERM;
