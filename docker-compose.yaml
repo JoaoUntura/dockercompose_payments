@@ -57,6 +57,7 @@ services:
     volumes:
       - ./config/nginx/conf.d:/etc/nginx/conf.d
       - ./config/certs:/etc/letsencrypt
+      - ./config/nginx/www:/etc/nginx/www
     ports:
       - "80:80"
       - "443:443"
