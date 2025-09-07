@@ -10,8 +10,10 @@ services:
       POSTGRES_PASSWORD: joaountura@dev
     ports:
       - "5432:5432"
+    restart: unless-stopped
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    
 
   rabbitmq:
     image: rabbitmq:3-management
@@ -22,13 +24,14 @@ services:
     environment:
       RABBITMQ_DEFAULT_USER: joaountura
       RABBITMQ_DEFAULT_PASS: joaountura@dev
+      restart: unless-stopped
 
   redis:
     image: redis:8.0.3
     container_name: redis
     ports:
       - "6379:6379"
- 
+    restart: unless-stopped
 
   java:
     image: joaountura/payment-microservice:latest
@@ -43,25 +46,13 @@ services:
       SPRING_RABBITMQ_PORT: 5672
       SPRING_REDIS_HOST: redis
       SPRING_REDIS_PORT: 6379
-      
+    restart: unless-stopped
     depends_on:
       - database
       - rabbitmq
       - redis
  
-  nginx:
-    image: nginx:stable
-    container_name: nginx
-    depends_on:
-      - java
-    volumes:
-      - ./config/nginx/conf.d:/etc/nginx/conf.d
-      - ./config/certs:/etc/letsencrypt
-      - ./config/nginx/www:/etc/nginx/www
-    ports:
-      - "80:80"
-      - "443:443"
-    restart: unless-stopped
+
 
 
 volumes:
