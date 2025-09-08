@@ -33,14 +33,6 @@ services:
       - "6379:6379"
     restart: unless-stopped
 
-  redis_exporter:
-    image: oliver006/redis_exporter:latest
-    container_name: redis_exporter
-    environment:
-      - REDIS_ADDR=redis://redis:6379
-    ports:
-      - "9121:9121"
-
   prometheus:
     image: prom/prometheus:latest
     
@@ -63,12 +55,6 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=admin
     ports:
       - "3000:3000"
-
-  cadvisor:
-    image: gcr.io/cadvisor/cadvisor:latest
-    container_name: cadvisor
-    ports:
-      - "8088:8080"
 
   java:
     image: joaountura/payment-microservice:latest
